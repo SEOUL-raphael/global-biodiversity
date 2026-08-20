@@ -44,6 +44,33 @@ export const T: Dict = {
     zh: "由 GBIF 开放数据提供支持",
     ar: "مدعوم ببيانات GBIF المفتوحة",
   },
+  migrationNoticeTitle: {
+    ko: "서비스 이전 안내",
+    en: "Service migration notice",
+    fr: "Avis de migration du service",
+    es: "Aviso de migración del servicio",
+    ru: "Уведомление о переносе сервиса",
+    zh: "服务迁移通知",
+    ar: "إشعار نقل الخدمة",
+  },
+  migrationNoticeBody: {
+    ko: "새로운 페이지로 이전했습니다. 최신 대시보드는 GitHub Pages에서 이용해 주세요.",
+    en: "We have moved to a new page. Visit GitHub Pages for the latest dashboard.",
+    fr: "Nous avons déménagé vers une nouvelle page. Consultez GitHub Pages pour le tableau de bord à jour.",
+    es: "Hemos migrado a una nueva página. Visita GitHub Pages para ver el panel más reciente.",
+    ru: "Мы переехали на новую страницу. Откройте GitHub Pages, чтобы пользоваться последней версией панели.",
+    zh: "我们已迁移到新页面。请访问 GitHub Pages 使用最新仪表板。",
+    ar: "لقد انتقلنا إلى صفحة جديدة. انتقل إلى GitHub Pages لاستخدام أحدث لوحة معلومات.",
+  },
+  migrationNoticeLink: {
+    ko: "새 대시보드 열기",
+    en: "Open the new dashboard",
+    fr: "Ouvrir le nouveau tableau de bord",
+    es: "Abrir el nuevo panel",
+    ru: "Открыть новую панель",
+    zh: "打开新仪表板",
+    ar: "فتح لوحة المعلومات الجديدة",
+  },
 
   // SEO
   metaTitle: {

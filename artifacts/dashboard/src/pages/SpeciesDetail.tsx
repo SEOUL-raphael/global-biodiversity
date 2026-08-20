@@ -106,18 +106,33 @@ export default function SpeciesDetail() {
 
   const { data: taxon, isLoading, error } = useGetGbifTaxon(
     taxonKey ?? 0,
-    { query: { enabled: taxonKey !== null && !isNaN(taxonKey ?? NaN) } }
+    {
+      query: {
+        queryKey: ["gbif-taxon", taxonKey ?? 0],
+        enabled: taxonKey !== null && !isNaN(taxonKey ?? NaN),
+      },
+    }
   );
 
   const { data: occurrences, isLoading: occLoading } = useSearchGbifOccurrences(
     { taxonKey: taxonKey ?? undefined, limit: occLimit, offset: occOffset },
-    { query: { enabled: !!taxonKey } }
+    {
+      query: {
+        queryKey: ["gbif-occurrences", taxonKey ?? 0, occLimit, occOffset],
+        enabled: !!taxonKey,
+      },
+    }
   );
 
   const { data: kgContext, isLoading: kgLoading } = useGetKgSpeciesContext(
     taxonKey ?? 0,
     { hops: 2 },
-    { query: { enabled: !!taxonKey } }
+    {
+      query: {
+        queryKey: ["kg-species-context", taxonKey ?? 0, 2],
+        enabled: !!taxonKey,
+      },
+    }
   );
 
   const MAX_DEPTH = 3;
@@ -274,7 +289,11 @@ export default function SpeciesDetail() {
 
   const { data: cogneeGraph, isLoading: cogneeLoading, error: cogneeError } =
     useGetCogneeSpeciesGraph(taxonKey ?? 0, {
-      query: { enabled: !!taxonKey, retry: 0 },
+      query: {
+        queryKey: ["cognee-species-graph", taxonKey ?? 0],
+        enabled: !!taxonKey,
+        retry: 0,
+      },
     });
 
   if (!taxonKey || isNaN(taxonKey)) {
@@ -364,7 +383,7 @@ export default function SpeciesDetail() {
                 <p className="text-xl font-bold text-blue-700">{(taxon.numOccurrences ?? 0).toLocaleString()}</p>
                 <p className="text-xs text-slate-500 mt-0.5">{t("occurrences")}</p>
               </div>
-              {(taxon.extinct === true || taxon.extinct === "true") && (
+              {taxon.extinct?.toLowerCase() === "true" && (
                 <div className="bg-gray-100 rounded-lg px-3 py-2 text-center">
                   <p className="text-sm font-semibold text-gray-700">{t("extinct")}</p>
                 </div>

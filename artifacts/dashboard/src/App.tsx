@@ -28,7 +28,10 @@ import {
   Menu,
   X,
   Network,
+  Info,
 } from "lucide-react";
+
+const NEW_DASHBOARD_URL = "https://seoul-raphael.github.io/global-biodiversity/";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -152,6 +155,23 @@ function Layout({ children }: { children: React.ReactNode }) {
       )}
 
       <main className="flex-1 overflow-auto p-4 sm:p-6 pt-16 md:pt-6 max-w-full">
+        <div className="mb-4 flex items-start gap-3 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-emerald-950 shadow-sm">
+          <Info className="mt-0.5 h-5 w-5 shrink-0 text-emerald-700" aria-hidden="true" />
+          <div className="min-w-0 text-sm leading-6">
+            <p className="font-semibold">{t("migrationNoticeTitle")}</p>
+            <p className="text-emerald-900/80">
+              {t("migrationNoticeBody")}{" "}
+              <a
+                href={NEW_DASHBOARD_URL}
+                target="_blank"
+                rel="noreferrer"
+                className="font-semibold underline underline-offset-2 hover:text-emerald-700"
+              >
+                {t("migrationNoticeLink")}
+              </a>
+            </p>
+          </div>
+        </div>
         {children}
       </main>
     </div>
