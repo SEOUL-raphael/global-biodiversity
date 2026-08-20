@@ -60,6 +60,10 @@ export default {
       return jsonError(404, "not_found", request, env);
     }
 
+    if (incomingUrl.pathname.startsWith("/api/admin/")) {
+      return jsonError(404, "not_found", request, env);
+    }
+
     if (request.method === "OPTIONS") {
       const headers = new Headers();
       if (!applyCors(headers, request, env)) {

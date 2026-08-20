@@ -16,7 +16,10 @@ const ADMIN_TOKEN = process.env["ADMIN_TOKEN"];
 const INGEST_CRON_TOKEN = process.env["INGEST_CRON_TOKEN"];
 
 function checkToken(req: Request, res: Response): boolean {
-  if (!ADMIN_TOKEN) return true;
+  if (!ADMIN_TOKEN) {
+    res.status(503).json({ error: "admin_token_not_configured" });
+    return false;
+  }
   const auth = req.headers["authorization"] ?? "";
   const token = auth.startsWith("Bearer ") ? auth.slice(7) : req.query["token"];
   if (token !== ADMIN_TOKEN) {
