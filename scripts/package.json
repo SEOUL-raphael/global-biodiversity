@@ -1,0 +1,30 @@
+{
+  "name": "@workspace/scripts",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "hello": "tsx ./src/hello.ts",
+    "seed-gbif": "tsx ./src/seed-gbif.ts",
+    "seed-gbif-targeted": "tsx ./src/seed-gbif-targeted.ts",
+    "seed-occurrences": "tsx ./src/seed-occurrences.ts",
+    "update-regions": "tsx ./src/update-regions.ts",
+    "fix-sync-logs": "tsx ./src/fix-sync-logs.ts",
+    "seed-gbif-expanded": "tsx ./src/seed-gbif-expanded.ts",
+    "seed-remaining-families": "tsx ./src/seed-remaining-families.ts",
+    "seed-occurrences-v2": "tsx ./src/seed-occurrences-v2.ts",
+    "build-knowledge-graph": "tsx ./src/build-knowledge-graph.ts",
+    "backfill-iucn-distributions": "tsx ./src/backfill-iucn-distributions.ts",
+    "migrate-supabase": "bash ./migrate-supabase.sh",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "@workspace/db": "workspace:*",
+    "@workspace/gbif-client": "workspace:*",
+    "drizzle-orm": "catalog:"
+  },
+  "devDependencies": {
+    "@types/node": "catalog:",
+    "tsx": "catalog:"
+  }
+}

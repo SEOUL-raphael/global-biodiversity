@@ -1,0 +1,21 @@
+kind = "api"
+previewPath = "/cognee"
+title = "Cognee KG Service"
+version = "1.0.0"
+id = "cognee-service-kg-mcp"
+
+[[services]]
+localPort = 5000
+name = "Cognee Service"
+paths = ["/cognee"]
+
+[services.development]
+run = "PORT=5000 python3 main.py"
+
+[services.production]
+
+[services.production.run]
+args = ["python3", "main.py"]
+
+[services.production.run.env]
+PORT = "5000"

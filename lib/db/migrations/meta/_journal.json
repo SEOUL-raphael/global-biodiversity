@@ -1,0 +1,27 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1777763221679,
+      "tag": "0000_cold_spirit",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1777769671840,
+      "tag": "0001_lush_wolfpack",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1777890872407,
+      "tag": "0002_jittery_agent_brand",
+      "breakpoints": true
+    }
+  ]
+}

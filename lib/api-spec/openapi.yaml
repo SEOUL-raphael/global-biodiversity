@@ -1,0 +1,1198 @@
+openapi: 3.1.0
+info:
+  # Do not change the title, if the title changes, the import paths will be broken
+  title: Api
+  version: 0.1.0
+  description: API specification
+servers:
+  - url: /api
+    description: Base API path
+tags:
+  - name: health
+    description: Health operations
+  - name: gbif
+    description: GBIF biodiversity data
+  - name: cognee
+    description: Cognee knowledge graph and MCP server
+paths:
+  /healthz:
+    get:
+      operationId: healthCheck
+      tags: [health]
+      summary: Health check
+      description: Returns server health status
+      responses:
+        "200":
+          description: Healthy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthStatus"
+  /gbif/status:
+    get:
+      operationId: getGbifStatus
+      tags: [gbif]
+      summary: Get GBIF sync status
+      description: Returns the latest sync log entries and overall data statistics
+      responses:
+        "200":
+          description: Sync status and statistics
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GbifStatus"
+  /gbif/taxa:
+    get:
+      operationId: searchGbifTaxa
+      tags: [gbif]
+      summary: Search taxa
+      description: Search for taxa in the local GBIF dataset
+      parameters:
+        - name: q
+          in: query
+          description: Scientific or canonical name query
+          schema:
+            type: string
+        - name: rank
+          in: query
+          description: Taxonomic rank filter
+          schema:
+            type: string
+        - name: kingdom
+          in: query
+          description: Kingdom filter
+          schema:
+            type: string
+        - name: iucnStatus
+          in: query
+          description: IUCN Red List status filter
+          schema:
+            type: string
+        - name: limit
+          in: query
+          description: Maximum results (default 20, max 100)
+          schema:
+            type: integer
+            default: 20
+        - name: offset
+          in: query
+          description: Pagination offset
+          schema:
+            type: integer
+            default: 0
+      responses:
+        "200":
+          description: Paginated list of taxa
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TaxaPaginatedResponse"
+  /gbif/taxa/{taxonKey}:
+    get:
+      operationId: getGbifTaxon
+      tags: [gbif]
+      summary: Get taxon details
+      description: Get full details for a specific taxon by its GBIF key
+      parameters:
+        - name: taxonKey
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Taxon details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Taxon"
+        "404":
+          description: Taxon not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /gbif/occurrences:
+    get:
+      operationId: searchGbifOccurrences
+      tags: [gbif]
+      summary: Search occurrences
+      description: Search occurrence records from the local dataset
+      parameters:
+        - name: taxonKey
+          in: query
+          schema:
+            type: integer
+        - name: countryCode
+          in: query
+          schema:
+            type: string
+        - name: year
+          in: query
+          schema:
+            type: integer
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            default: 0
+      responses:
+        "200":
+          description: Paginated list of occurrences
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OccurrencePaginatedResponse"
+  /gbif/regions:
+    get:
+      operationId: listGbifRegions
+      tags: [gbif]
+      summary: List regions
+      description: List all regions with occurrence and species counts
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 50
+      responses:
+        "200":
+          description: List of regions
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Region"
+  /cognee/status:
+    get:
+      operationId: getCogneeStatus
+      tags: [cognee]
+      summary: Cognee service status
+      description: Returns the status of the Cognee knowledge graph service including node/edge counts
+      responses:
+        "200":
+          description: Cognee status
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CogneeStatus"
+        "503":
+          description: Service unavailable
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /cognee/search:
+    get:
+      operationId: searchCognee
+      tags: [cognee]
+      summary: Search Cognee knowledge graph
+      description: Search for species and taxonomy insights using the Cognee graph
+      parameters:
+        - name: q
+          in: query
+          required: true
+          description: Search query (species name, kingdom, etc.)
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Search results
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CogneeSearchResponse"
+        "503":
+          description: Service unavailable
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /cognee/graph/species/{taxonKey}:
+    get:
+      operationId: getCogneeSpeciesGraph
+      tags: [cognee]
+      summary: Get species KG context
+      description: Returns the knowledge graph context (nodes and edges) for a specific taxon
+      parameters:
+        - name: taxonKey
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Species graph context
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CogneeGraphContext"
+        "404":
+          description: Taxon not found in graph
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "503":
+          description: Service unavailable
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /cognee/mcp:
+    get:
+      operationId: getMcpInfo
+      tags: [cognee]
+      summary: MCP server info and tools
+      description: Returns MCP server metadata and available tool definitions
+      responses:
+        "200":
+          description: MCP server info
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/McpServerInfo"
+    post:
+      operationId: callMcpTool
+      tags: [cognee]
+      summary: Call MCP tool
+      description: Execute a JSON-RPC 2.0 request against the MCP server
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/McpRequest"
+      responses:
+        "200":
+          description: JSON-RPC response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/McpResponse"
+  /kg/stats:
+    get:
+      operationId: getKgStats
+      tags: [kg]
+      summary: Knowledge graph statistics
+      description: Returns total node and edge counts broken down by type
+      responses:
+        "200":
+          description: KG statistics
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/KgStats"
+  /kg/species/{taxonKey}/context:
+    get:
+      operationId: getKgSpeciesContext
+      tags: [kg]
+      summary: Species graph context
+      description: Returns n-hop neighbourhood subgraph for a species node
+      parameters:
+        - name: taxonKey
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: hops
+          in: query
+          description: Number of hops to traverse (1 or 2, default 2)
+          schema:
+            type: integer
+            default: 2
+      responses:
+        "200":
+          description: Graph context
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/KgGraphContext"
+        "404":
+          description: Species not in graph
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /kg/nodes/{nodeId}/context:
+    get:
+      operationId: getKgNodeContext
+      tags: [kg]
+      summary: Generic node graph context
+      description: Returns n-hop neighbourhood subgraph for any KG node by internal node id
+      parameters:
+        - name: nodeId
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: hops
+          in: query
+          description: Number of hops to traverse (1 or 2, default 1)
+          schema:
+            type: integer
+            default: 1
+      responses:
+        "200":
+          description: Graph context
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/KgGraphContext"
+        "404":
+          description: Node not in graph
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /kg/insights/cooccurrence:
+    get:
+      operationId: getKgCooccurrence
+      tags: [kg]
+      summary: Co-occurrence clusters
+      description: Returns species pairs that frequently co-occur (by Jaccard similarity)
+      parameters:
+        - name: region
+          in: query
+          description: Two-letter ISO country code to filter by region
+          schema:
+            type: string
+        - name: minJaccard
+          in: query
+          description: Minimum Jaccard similarity threshold (default 0.1)
+          schema:
+            type: number
+            default: 0.1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        "200":
+          description: Co-occurrence clusters
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CooccurrenceResponse"
+  /kg/insights/endangered-hotspots:
+    get:
+      operationId: getKgEndangeredHotspots
+      tags: [kg]
+      summary: Endangered species hotspots
+      description: Returns regions ranked by number of IUCN-threatened species
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 10
+      responses:
+        "200":
+          description: Endangered hotspots
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EndangeredHotspotsResponse"
+  /kg/insights/taxonomy-gap:
+    get:
+      operationId: getKgTaxonomyGap
+      tags: [kg]
+      summary: Taxonomy data gaps
+      description: Returns families and orders with fewest occurrences relative to species count
+      parameters:
+        - name: kingdom
+          in: query
+          schema:
+            type: string
+        - name: rank
+          in: query
+          schema:
+            type: string
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        "200":
+          description: Taxonomy gaps
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TaxonomyGapResponse"
+  /kg/insights/threat-distribution:
+    get:
+      operationId: getKgThreatDistribution
+      tags: [kg]
+      summary: IUCN threat status distribution
+      description: Returns IUCN status counts overall and by kingdom, plus families with highest threatened ratio
+      parameters:
+        - name: topFamilies
+          in: query
+          schema:
+            type: integer
+            default: 10
+      responses:
+        "200":
+          description: Threat distribution
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ThreatDistributionResponse"
+  /kg/insights/occurrence-trends:
+    get:
+      operationId: getKgOccurrenceTrends
+      tags: [kg]
+      summary: Occurrence trends over time
+      description: Yearly occurrence counts plus per-country yearly series for top contributing countries
+      parameters:
+        - name: fromYear
+          in: query
+          schema:
+            type: integer
+            default: 1980
+        - name: topCountries
+          in: query
+          schema:
+            type: integer
+            default: 5
+      responses:
+        "200":
+          description: Occurrence trends
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OccurrenceTrendsResponse"
+  /kg/mcp-status:
+    get:
+      operationId: getMcpStatus
+      tags: [kg]
+      summary: MCP service status
+      description: Returns the MCP HTTP transport endpoint and the list of available tools exposed by the server
+      responses:
+        "200":
+          description: MCP service status
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/McpStatus"
+components:
+  schemas:
+    HealthStatus:
+      type: object
+      properties:
+        status:
+          type: string
+      required:
+        - status
+    GbifStatus:
+      type: object
+      properties:
+        taxaCount:
+          type: integer
+        occurrenceCount:
+          type: integer
+        regionCount:
+          type: integer
+        lastSync:
+          type: string
+          nullable: true
+        recentSyncs:
+          type: array
+          items:
+            $ref: "#/components/schemas/SyncLog"
+      required:
+        - taxaCount
+        - occurrenceCount
+        - regionCount
+        - recentSyncs
+    SyncLog:
+      type: object
+      properties:
+        id:
+          type: integer
+        syncType:
+          type: string
+        status:
+          type: string
+        recordsProcessed:
+          type: integer
+        checkpoint:
+          type: string
+          nullable: true
+        errorMessage:
+          type: string
+          nullable: true
+        startedAt:
+          type: string
+        finishedAt:
+          type: string
+          nullable: true
+      required:
+        - id
+        - syncType
+        - status
+        - recordsProcessed
+        - startedAt
+    Taxon:
+      type: object
+      properties:
+        taxonKey:
+          type: integer
+        parentKey:
+          type: integer
+          nullable: true
+        rank:
+          type: string
+        kingdom:
+          type: string
+          nullable: true
+        phylum:
+          type: string
+          nullable: true
+        class:
+          type: string
+          nullable: true
+        order:
+          type: string
+          nullable: true
+        family:
+          type: string
+          nullable: true
+        genus:
+          type: string
+          nullable: true
+        species:
+          type: string
+          nullable: true
+        scientificName:
+          type: string
+        canonicalName:
+          type: string
+          nullable: true
+        vernacularName:
+          type: string
+          nullable: true
+        iucnStatus:
+          type: string
+          nullable: true
+        numOccurrences:
+          type: integer
+        extinct:
+          type: string
+          nullable: true
+      required:
+        - taxonKey
+        - rank
+        - scientificName
+        - numOccurrences
+    TaxaPaginatedResponse:
+      type: object
+      properties:
+        total:
+          type: integer
+        offset:
+          type: integer
+        limit:
+          type: integer
+        results:
+          type: array
+          items:
+            $ref: "#/components/schemas/Taxon"
+      required:
+        - total
+        - offset
+        - limit
+        - results
+    Occurrence:
+      type: object
+      properties:
+        id:
+          type: integer
+        taxonKey:
+          type: integer
+        countryCode:
+          type: string
+          nullable: true
+        decimalLatitude:
+          type: number
+          nullable: true
+        decimalLongitude:
+          type: number
+          nullable: true
+        year:
+          type: integer
+          nullable: true
+        month:
+          type: integer
+          nullable: true
+        basisOfRecord:
+          type: string
+          nullable: true
+      required:
+        - id
+        - taxonKey
+    OccurrencePaginatedResponse:
+      type: object
+      properties:
+        total:
+          type: integer
+        offset:
+          type: integer
+        limit:
+          type: integer
+        results:
+          type: array
+          items:
+            $ref: "#/components/schemas/Occurrence"
+      required:
+        - total
+        - offset
+        - limit
+        - results
+    Region:
+      type: object
+      properties:
+        countryCode:
+          type: string
+        countryName:
+          type: string
+        occurrenceCount:
+          type: integer
+        speciesCount:
+          type: integer
+        lastSynced:
+          type: string
+          nullable: true
+      required:
+        - countryCode
+        - countryName
+        - occurrenceCount
+        - speciesCount
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+        message:
+          type: string
+      required:
+        - error
+        - message
+    KgStats:
+      type: object
+      properties:
+        totalNodes:
+          type: integer
+        totalEdges:
+          type: integer
+        nodesByType:
+          type: object
+          additionalProperties:
+            type: integer
+        edgesByType:
+          type: object
+          additionalProperties:
+            type: integer
+      required:
+        - totalNodes
+        - totalEdges
+        - nodesByType
+        - edgesByType
+    KgNode:
+      type: object
+      properties:
+        nodeId:
+          type: integer
+        nodeType:
+          type: string
+        externalId:
+          type: string
+        label:
+          type: string
+        properties:
+          type: object
+          nullable: true
+      required:
+        - nodeId
+        - nodeType
+        - externalId
+        - label
+    KgEdge:
+      type: object
+      properties:
+        edgeId:
+          type: integer
+        fromNode:
+          type: integer
+        toNode:
+          type: integer
+        edgeType:
+          type: string
+        weight:
+          type: number
+        properties:
+          type: object
+          nullable: true
+      required:
+        - edgeId
+        - fromNode
+        - toNode
+        - edgeType
+        - weight
+    KgGraphContext:
+      type: object
+      properties:
+        rootNode:
+          $ref: "#/components/schemas/KgNode"
+        hops:
+          type: integer
+        nodes:
+          type: array
+          items:
+            $ref: "#/components/schemas/KgNode"
+        edges:
+          type: array
+          items:
+            $ref: "#/components/schemas/KgEdge"
+      required:
+        - rootNode
+        - hops
+        - nodes
+        - edges
+    CooccurrenceCluster:
+      type: object
+      properties:
+        taxonKeyA:
+          type: integer
+        labelA:
+          type: string
+        taxonKeyB:
+          type: integer
+        labelB:
+          type: string
+        jaccardSimilarity:
+          type: number
+        sharedRegions:
+          type: array
+          items:
+            type: string
+      required:
+        - taxonKeyA
+        - labelA
+        - taxonKeyB
+        - labelB
+        - jaccardSimilarity
+        - sharedRegions
+    CooccurrenceResponse:
+      type: object
+      properties:
+        region:
+          type: string
+          nullable: true
+        minJaccard:
+          type: number
+        count:
+          type: integer
+        clusters:
+          type: array
+          items:
+            $ref: "#/components/schemas/CooccurrenceCluster"
+      required:
+        - region
+        - minJaccard
+        - count
+        - clusters
+    EndangeredSpecies:
+      type: object
+      properties:
+        taxonKey:
+          type: integer
+        label:
+          type: string
+        iucnStatus:
+          type: string
+      required:
+        - taxonKey
+        - label
+        - iucnStatus
+    EndangeredHotspot:
+      type: object
+      properties:
+        countryCode:
+          type: string
+        regionLabel:
+          type: string
+        endangeredCount:
+          type: integer
+        iucnStatuses:
+          type: array
+          items:
+            type: string
+        topSpecies:
+          type: array
+          items:
+            $ref: "#/components/schemas/EndangeredSpecies"
+      required:
+        - countryCode
+        - regionLabel
+        - endangeredCount
+        - iucnStatuses
+        - topSpecies
+    EndangeredHotspotsResponse:
+      type: object
+      properties:
+        count:
+          type: integer
+        hotspots:
+          type: array
+          items:
+            $ref: "#/components/schemas/EndangeredHotspot"
+      required:
+        - count
+        - hotspots
+    TaxonomyGapItem:
+      type: object
+      properties:
+        rank:
+          type: string
+        taxonKey:
+          type: integer
+        label:
+          type: string
+        kingdom:
+          type: string
+          nullable: true
+        totalSpeciesCount:
+          type: integer
+        occurrenceCount:
+          type: integer
+        occurrencePerSpecies:
+          type: number
+      required:
+        - rank
+        - taxonKey
+        - label
+        - totalSpeciesCount
+        - occurrenceCount
+        - occurrencePerSpecies
+    TaxonomyGapResponse:
+      type: object
+      properties:
+        count:
+          type: integer
+        gaps:
+          type: array
+          items:
+            $ref: "#/components/schemas/TaxonomyGapItem"
+      required:
+        - count
+        - gaps
+    ThreatStatusBucket:
+      type: object
+      properties:
+        status:
+          type: string
+        count:
+          type: integer
+      required: [status, count]
+    KingdomThreatBreakdown:
+      type: object
+      properties:
+        kingdom:
+          type: string
+        total:
+          type: integer
+        threatened:
+          type: integer
+        notEvaluated:
+          type: integer
+        byStatus:
+          type: object
+          additionalProperties:
+            type: integer
+      required: [kingdom, total, threatened, notEvaluated, byStatus]
+    FamilyThreatItem:
+      type: object
+      properties:
+        family:
+          type: string
+        kingdom:
+          type: string
+          nullable: true
+        totalSpecies:
+          type: integer
+        threatenedSpecies:
+          type: integer
+        threatRatio:
+          type: number
+      required: [family, totalSpecies, threatenedSpecies, threatRatio]
+    ThreatDistributionResponse:
+      type: object
+      properties:
+        totalClassified:
+          type: integer
+        totalSpecies:
+          type: integer
+        byStatus:
+          type: array
+          items:
+            $ref: "#/components/schemas/ThreatStatusBucket"
+        byKingdom:
+          type: array
+          items:
+            $ref: "#/components/schemas/KingdomThreatBreakdown"
+        topThreatenedFamilies:
+          type: array
+          items:
+            $ref: "#/components/schemas/FamilyThreatItem"
+      required: [totalClassified, totalSpecies, byStatus, byKingdom, topThreatenedFamilies]
+    YearOccurrencePoint:
+      type: object
+      properties:
+        year:
+          type: integer
+        count:
+          type: integer
+      required: [year, count]
+    CountryYearSeries:
+      type: object
+      properties:
+        countryCode:
+          type: string
+        total:
+          type: integer
+        series:
+          type: array
+          items:
+            $ref: "#/components/schemas/YearOccurrencePoint"
+      required: [countryCode, total, series]
+    OccurrenceTrendsResponse:
+      type: object
+      properties:
+        yearMin:
+          type: integer
+        yearMax:
+          type: integer
+        totalWithYear:
+          type: integer
+        totalWithoutYear:
+          type: integer
+        yearly:
+          type: array
+          items:
+            $ref: "#/components/schemas/YearOccurrencePoint"
+        topCountries:
+          type: array
+          items:
+            $ref: "#/components/schemas/CountryYearSeries"
+      required: [yearMin, yearMax, totalWithYear, totalWithoutYear, yearly, topCountries]
+    McpStatus:
+      type: object
+      properties:
+        status:
+          type: string
+        transport:
+          type: string
+        endpoint:
+          type: string
+        toolCount:
+          type: integer
+        tools:
+          type: array
+          items:
+            type: string
+      required:
+        - status
+        - toolCount
+        - tools
+    CogneeStatus:
+      type: object
+      properties:
+        status:
+          type: string
+        nodeCount:
+          type: integer
+        edgeCount:
+          type: integer
+        nodesByType:
+          type: object
+          additionalProperties:
+            type: integer
+        taxaLoaded:
+          type: integer
+        loaded:
+          type: boolean
+        loadError:
+          type: string
+          nullable: true
+      required:
+        - status
+        - nodeCount
+        - edgeCount
+        - taxaLoaded
+        - loaded
+    CogneeSearchResult:
+      type: object
+      properties:
+        externalId:
+          type: string
+        nodeType:
+          type: string
+        label:
+          type: string
+        properties:
+          type: object
+        relatedTo:
+          type: array
+          items:
+            type: string
+        score:
+          type: number
+      required:
+        - externalId
+        - nodeType
+        - label
+        - relatedTo
+        - score
+    CogneeSearchResponse:
+      type: object
+      properties:
+        query:
+          type: string
+        count:
+          type: integer
+        results:
+          type: array
+          items:
+            $ref: "#/components/schemas/CogneeSearchResult"
+      required:
+        - query
+        - count
+        - results
+    CogneeGraphNode:
+      type: object
+      properties:
+        externalId:
+          type: string
+        nodeType:
+          type: string
+        label:
+          type: string
+        properties:
+          type: object
+      required:
+        - externalId
+        - nodeType
+        - label
+    CogneeGraphEdge:
+      type: object
+      properties:
+        from:
+          type: string
+        to:
+          type: string
+        edgeType:
+          type: string
+        weight:
+          type: number
+      required:
+        - from
+        - to
+        - edgeType
+        - weight
+    CogneeGraphContext:
+      type: object
+      properties:
+        taxonKey:
+          type: integer
+        label:
+          type: string
+        nodeType:
+          type: string
+        properties:
+          type: object
+        nodeCount:
+          type: integer
+        edgeCount:
+          type: integer
+        nodes:
+          type: array
+          items:
+            $ref: "#/components/schemas/CogneeGraphNode"
+        edges:
+          type: array
+          items:
+            $ref: "#/components/schemas/CogneeGraphEdge"
+      required:
+        - taxonKey
+        - label
+        - nodeType
+        - nodeCount
+        - edgeCount
+        - nodes
+        - edges
+    McpTool:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        inputSchema:
+          type: object
+      required:
+        - name
+        - description
+        - inputSchema
+    McpServerInfo:
+      type: object
+      properties:
+        server:
+          type: object
+        tools:
+          type: array
+          items:
+            $ref: "#/components/schemas/McpTool"
+        capabilities:
+          type: object
+      required:
+        - server
+        - tools
+    McpRequest:
+      type: object
+      properties:
+        jsonrpc:
+          type: string
+        id:
+          type: string
+          nullable: true
+        method:
+          type: string
+        params:
+          type: object
+      required:
+        - method
+    McpResponse:
+      type: object
+      properties:
+        jsonrpc:
+          type: string
+        id:
+          type: string
+          nullable: true
+        result:
+          type: object
+          nullable: true
+        error:
+          type: object
+          nullable: true
+      required:
+        - jsonrpc

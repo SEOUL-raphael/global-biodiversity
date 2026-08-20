@@ -1,0 +1,7 @@
+name = "gbif-biodiversity-api"
+main = "src/cloudflare-worker.mjs"
+compatibility_date = "2025-12-01"
+workers_dev = true
+
+# Configure LEGACY_API_ORIGIN and ALLOWED_ORIGINS in the Cloudflare Worker
+# settings. They are intentionally not committed here.

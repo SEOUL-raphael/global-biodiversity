@@ -1,0 +1,3 @@
+# Copy to .dev.vars for local Cloudflare Worker development. Do not commit .dev.vars.
+LEGACY_API_ORIGIN=https://your-existing-api.example.com
+ALLOWED_ORIGINS=https://your-account.github.io
