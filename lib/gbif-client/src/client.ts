@@ -10,15 +10,15 @@ import type {
 const GBIF_BASE_URL = "https://api.gbif.org/v1";
 const REQUEST_INTERVAL_MS = 120;
 
-let lastRequestTime = 0;
+let nextRequestTime = 0;
 
 async function throttle(): Promise<void> {
   const now = Date.now();
-  const elapsed = now - lastRequestTime;
-  if (elapsed < REQUEST_INTERVAL_MS) {
-    await new Promise((r) => setTimeout(r, REQUEST_INTERVAL_MS - elapsed));
+  const scheduledTime = Math.max(now, nextRequestTime);
+  nextRequestTime = scheduledTime + REQUEST_INTERVAL_MS;
+  if (scheduledTime > now) {
+    await new Promise((r) => setTimeout(r, scheduledTime - now));
   }
-  lastRequestTime = Date.now();
 }
 
 async function gbifFetch<T>(path: string, params?: Record<string, string | number | boolean | undefined>): Promise<T> {
@@ -95,7 +95,7 @@ export async function* paginateSpecies(
     for (const taxon of page.results) {
       yield taxon;
     }
-    if (page.endOfRecords) break;
+    if (page.endOfRecords || page.results.length === 0) break;
     offset += pageSize;
   }
 }
@@ -110,7 +110,7 @@ export async function* paginateOccurrences(
     for (const occ of page.results) {
       yield occ;
     }
-    if (page.endOfRecords || offset + pageSize >= 100_000) break;
+    if (page.endOfRecords || page.results.length === 0 || offset + pageSize >= 100_000) break;
     offset += pageSize;
   }
 }

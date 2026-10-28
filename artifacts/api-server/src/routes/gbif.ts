@@ -12,8 +12,9 @@ const router: IRouter = Router();
 
 function parsePositiveInt(val: unknown, defaultVal: number): number | null {
   if (val === undefined || val === null || val === "") return defaultVal;
-  const n = parseInt(String(val), 10);
-  if (isNaN(n) || n < 0) return null;
+  if (typeof val !== "string" || !/^\d+$/.test(val)) return null;
+  const n = Number(val);
+  if (!Number.isSafeInteger(n)) return null;
   return n;
 }
 
@@ -142,8 +143,8 @@ router.get("/gbif/taxa", async (req, res) => {
 });
 
 router.get("/gbif/taxa/:taxonKey", async (req, res) => {
-  const key = parseInt(req.params.taxonKey, 10);
-  if (isNaN(key) || key <= 0) {
+  const key = parsePositiveInt(req.params.taxonKey, 0);
+  if (key === null || key <= 0) {
     res.status(400).json({ error: "bad_request", message: "Invalid taxon key" });
     return;
   }
@@ -169,24 +170,28 @@ router.get("/gbif/taxa/:taxonKey", async (req, res) => {
 
 router.get("/gbif/occurrences", async (req, res) => {
   const rawTaxonKey = req.query.taxonKey != null && req.query.taxonKey !== ""
-    ? parseInt(String(req.query.taxonKey), 10)
+    ? parsePositiveInt(req.query.taxonKey, 0)
     : undefined;
   const rawYear = req.query.year != null && req.query.year !== ""
-    ? parseInt(String(req.query.year), 10)
+    ? parsePositiveInt(req.query.year, 0)
     : undefined;
 
-  if (rawTaxonKey !== undefined && (isNaN(rawTaxonKey) || rawTaxonKey <= 0)) {
+  if (rawTaxonKey !== undefined && (rawTaxonKey === null || rawTaxonKey <= 0)) {
     res.status(400).json({ error: "bad_request", message: "taxonKey must be a positive integer" });
     return;
   }
-  if (rawYear !== undefined && (isNaN(rawYear) || rawYear < 1000 || rawYear > 9999)) {
+  if (rawYear !== undefined && (rawYear === null || rawYear < 1000 || rawYear > 9999)) {
     res.status(400).json({ error: "bad_request", message: "year must be a valid 4-digit year" });
     return;
   }
 
   const countryCode = typeof req.query.countryCode === "string"
-    ? req.query.countryCode.toUpperCase().slice(0, 2)
+    ? req.query.countryCode.toUpperCase()
     : undefined;
+  if (countryCode && !/^[A-Z]{2}$/.test(countryCode)) {
+    res.status(400).json({ error: "bad_request", message: "countryCode must be a two-letter code" });
+    return;
+  }
 
   const rawLimit = parsePositiveInt(req.query.limit, 20);
   const rawOffset = parsePositiveInt(req.query.offset, 0);
