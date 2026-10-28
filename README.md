@@ -1,5 +1,7 @@
 # Global Biodiversity
 
+[대시보드 바로가기](https://seoul-raphael.github.io/global-biodiversity/)
+
 GBIF 자료를 수집해 분류군, 관측 기록, 지역 통계와 지식 그래프를 탐색하는 대시보드입니다. React 대시보드, Express API, PostgreSQL 저장소, 선택적 Python Cognee 서비스가 pnpm workspace에 들어 있습니다.
 
 ## 구성
